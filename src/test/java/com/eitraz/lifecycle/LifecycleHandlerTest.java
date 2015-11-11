@@ -82,7 +82,6 @@ public class LifecycleHandlerTest {
 
         handler.start();
         assertTrue(startAndRunnable.started.get());
-        assertTrue(startAndRunnable.hasRun.get());
 
         handler.stop();
         assertTrue(startAndRunnable.started.get());
