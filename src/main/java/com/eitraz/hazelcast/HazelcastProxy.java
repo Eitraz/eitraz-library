@@ -12,6 +12,9 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public abstract class HazelcastProxy implements Startable, Stopable, MessageListener<HazelcastProxy.MethodCall> {
     private static final Logger logger = Logger.getLogger(HazelcastProxy.class);
@@ -20,6 +23,9 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
     private final ITopic<MethodCall> topic;
     private boolean returnValue = true;
     private String listenerId;
+
+    private BlockingQueue<MethodCall> methodCalls = new LinkedBlockingQueue<>();
+    private Thread invoker;
 
     public HazelcastProxy(String topicName) {
         hazelcast = Hazelcast.newHazelcastInstance();
@@ -80,14 +86,41 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
     }
 
     @Override
-    public void doStart() {
+    public synchronized void doStart() {
         if (listenerId == null) {
             listenerId = topic.addMessageListener(this);
+        }
+
+        if (invoker == null) {
+            invoker = new Thread("HazelcastProxy invoker") {
+                @Override
+                public void run() {
+                    logger.info("Started");
+
+                    while (invoker == this) {
+                        try {
+                            MethodCall methodCall = methodCalls.poll(1, TimeUnit.SECONDS);
+
+                            // Execute
+                            if (methodCall != null)
+                                invoke(methodCall);
+
+                        } catch (InterruptedException e) {
+                            logger.error(e);
+                        }
+                    }
+
+                    logger.info("Stopped");
+                }
+            };
+            invoker.start();
         }
     }
 
     @Override
-    public void doStop() {
+    public synchronized void doStop() {
+        invoker = null;
+
         if (listenerId != null) {
             topic.removeMessageListener(listenerId);
             listenerId = null;
@@ -98,10 +131,17 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
     public void onMessage(Message<MethodCall> message) {
         MethodCall methodCall = message.getMessageObject();
 
-        // Don't execute locally
+        // Don't invoke locally
         if (!methodCall.isExecuteLocally() && message.getPublishingMember().equals(hazelcast.getCluster().getLocalMember()))
             return;
 
+        methodCalls.offer(methodCall);
+    }
+
+    /**
+     * @param methodCall method call to invoke
+     */
+    private void invoke(MethodCall methodCall) {
         String objectReference = methodCall.getObjectReference();
 
         Object object = createObjectFromReference(objectReference);
@@ -129,7 +169,7 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
             method.invoke(object, args);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             logger.error(
-                    String.format("Failed to execute method '%s' with arguments '%s' on object '%s' (%s)",
+                    String.format("Failed to invoke method '%s' with arguments '%s' on object '%s' (%s)",
                             methodName,
                             Arrays.deepToString(args),
                             objectReference,
