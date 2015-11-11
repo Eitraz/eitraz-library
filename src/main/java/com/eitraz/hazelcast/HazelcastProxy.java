@@ -63,7 +63,7 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
                             executeLocally = true;
                         }
                         // Invoke method local and return value
-                        else if (returnValue) {
+                        else if (isReturnValue()) {
                             ret = method.invoke(object, args);
                             executeLocally = false;
                         }
