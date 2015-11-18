@@ -1,4 +1,4 @@
-package com.eitraz.lifecycle;
+package com.eitraz.library.lifecycle;
 
 
 public interface Stopable {

@@ -1,4 +1,4 @@
-package com.eitraz.lifecycle;
+package com.eitraz.library.lifecycle;
 
 import org.apache.log4j.Logger;
 

@@ -1,7 +1,7 @@
-package com.eitraz.hazelcast;
+package com.eitraz.library.hazelcast;
 
-import com.eitraz.lifecycle.Startable;
-import com.eitraz.lifecycle.Stopable;
+import com.eitraz.library.lifecycle.Startable;
+import com.eitraz.library.lifecycle.Stopable;
 import com.hazelcast.core.*;
 import org.apache.log4j.Logger;
 

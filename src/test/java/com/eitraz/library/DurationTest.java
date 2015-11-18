@@ -1,4 +1,4 @@
-package com.eitraz;
+package com.eitraz.library;
 
 import org.junit.Test;
 

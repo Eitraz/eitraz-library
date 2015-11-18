@@ -1,4 +1,4 @@
-package com.eitraz.hazelcast;
+package com.eitraz.library.hazelcast;
 
 import org.junit.After;
 import org.junit.Before;

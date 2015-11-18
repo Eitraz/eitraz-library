@@ -1,4 +1,4 @@
-package com.eitraz.lifecycle;
+package com.eitraz.library.lifecycle;
 
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
