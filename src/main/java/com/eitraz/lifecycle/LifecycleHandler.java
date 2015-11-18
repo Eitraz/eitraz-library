@@ -2,16 +2,13 @@ package com.eitraz.lifecycle;
 
 import org.apache.log4j.Logger;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LifecycleHandler {
     private static final Logger logger = Logger.getLogger(LifecycleHandler.class);
     public static final int JOIN_TIMEOUT = 5000;
 
-    private Set<Object> objects = new HashSet<>();
+    private Set<Object> objects = new LinkedHashSet<>();
     private Map<Object, Thread> threads = new HashMap<>();
 
     public <T> T register(T object) {
@@ -40,7 +37,11 @@ public class LifecycleHandler {
     }
 
     public void stop() {
-        for (Object object : objects) {
+        // Stop in reverse order
+        ArrayList<Object> reversedObjectList = new ArrayList<>(objects);
+        Collections.reverse(reversedObjectList);
+
+        for (Object object : reversedObjectList) {
             String name = object.getClass().getSimpleName();
 
             if (object instanceof Stopable) {
