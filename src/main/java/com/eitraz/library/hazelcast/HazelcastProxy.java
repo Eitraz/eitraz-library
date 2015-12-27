@@ -27,8 +27,8 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
     private BlockingQueue<MethodCall> methodCalls = new LinkedBlockingQueue<>();
     private Thread invoker;
 
-    public HazelcastProxy(String topicName) {
-        hazelcast = Hazelcast.newHazelcastInstance();
+    public HazelcastProxy(HazelcastInstance hazelcast, String topicName) {
+        this.hazelcast = hazelcast;
         topic = hazelcast.getTopic(topicName);
     }
 
@@ -107,6 +107,8 @@ public abstract class HazelcastProxy implements Startable, Stopable, MessageList
 
                         } catch (InterruptedException e) {
                             logger.error(e);
+                        } catch (HazelcastInstanceNotActiveException ignored) {
+                            break;
                         }
                     }
 

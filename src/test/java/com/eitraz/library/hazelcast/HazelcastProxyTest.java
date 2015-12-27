@@ -1,5 +1,6 @@
 package com.eitraz.library.hazelcast;
 
+import com.hazelcast.core.Hazelcast;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +63,7 @@ public class HazelcastProxyTest {
     }
 
     private HazelcastProxy getHazelcastProxy() {
-        return new HazelcastProxy("test-topic") {
+        return new HazelcastProxy(Hazelcast.newHazelcastInstance(), "test-topic") {
             @Override
             protected String createObjectReference(Object object) {
                 for (Map.Entry<String, Object> entry : objects.entrySet()) {
